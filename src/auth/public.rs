@@ -80,7 +80,7 @@ pub fn is_public_endpoint(path: &str) -> bool {
 /// opening an endpoint up always shows as a reviewed change:
 ///
 /// ```ignore
-/// assert_eq!(g3_core::auth::public_endpoints(), ["/api/v1/is_signed_in", "/api/v1/user"]);
+/// assert_eq!(g3_kit::auth::public_endpoints(), ["/api/v1/is_signed_in", "/api/v1/user"]);
 /// ```
 pub fn public_endpoints() -> Vec<&'static str> {
     let mut paths: Vec<_> = inventory::iter::<PublicEndpoint>

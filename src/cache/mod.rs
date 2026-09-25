@@ -4,7 +4,7 @@
 //! root.
 //!
 //! ```ignore
-//! use g3_core::{cache_shared, invalidate_cached, use_cached};
+//! use g3_kit::{cache_shared, invalidate_cached, use_cached};
 //!
 //! // A screen: show the last known answer at once, refetch in the background.
 //! let media = use_cached(get_media, (id.clone(),));
@@ -49,18 +49,18 @@
 //!
 //! ```toml
 //! [dependencies]
-//! g3-core = { version = "0.1", features = ["cache"] }
+//! g3-kit = { version = "0.1", features = ["cache"] }
 //!
 //! [features]
-//! web = ["dioxus/web", "g3-core/web"]          # IndexedDB store
-//! mobile = ["dioxus/mobile", "g3-core/mobile"] # redb file store
-//! server = ["dioxus/server", "g3-core/server"] # server + CDN caches; client cache off
+//! web = ["dioxus/web", "g3-kit/web"]          # IndexedDB store
+//! mobile = ["dioxus/mobile", "g3-kit/mobile"] # redb file store
+//! server = ["dioxus/server", "g3-kit/server"] # server + CDN caches; client cache off
 //! ```
 //!
 //! Then, in the app:
 //!
 //! ```ignore
-//! use g3_core::{CacheConfig, set_cache_owner, use_client_cache};
+//! use g3_kit::{CacheConfig, set_cache_owner, use_client_cache};
 //!
 //! fn App() -> Element {
 //!     // 1. Once, first thing in the root component.
@@ -80,7 +80,7 @@
 //!
 //! ```ignore
 //! .layer(session_layer)
-//! .layer(g3_core::cdn_cache_guard("/api"))
+//! .layer(g3_kit::cdn_cache_guard("/api"))
 //! ```
 //!
 //! # Client cache
@@ -164,7 +164,7 @@
 //! | `#[cache_shared]` on a function whose body reads `FullstackContext` | Compile error |
 //! | `#[cache_shared]` on a `POST`, `PUT`, `PATCH`, `DELETE` or `#[server]` | Compile error |
 //! | `#[cache_shared]` placed below `#[get]`, or with a malformed duration | Compile error |
-//! | `#[cache_shared]` in a server build without `g3-core/server` | Warning naming the fix; runs uncached |
+//! | `#[cache_shared]` in a server build without `g3-kit/server` | Warning naming the fix; runs uncached |
 //! | A shared response carrying a session cookie | Removed at runtime by `cdn_cache_guard` |
 //! | An error response being cached at the CDN or on the server | Never cached |
 //! | Persisting data before knowing whose it is | Memory only until [`set_cache_owner`] |
@@ -202,7 +202,7 @@ pub use client::{
     invalidate_cached_call, invalidate_cached_key, invalidate_cached_name, set_cache_owner,
     use_cached, use_cached_key, use_cached_key_with, use_cached_with, use_client_cache,
 };
-pub use g3_core_macros::cache_shared;
+pub use g3_kit_macros::cache_shared;
 pub use key::{CacheKey, CacheableFn};
 
 /// Support for the code [`cache_shared`] generates. Not public API.
@@ -213,13 +213,13 @@ pub mod __private {
     #[cfg(feature = "server")]
     pub use crate::cache::server::__private::*;
 
-    // Stand-ins for a server build that forgot `g3-core/server`: the
+    // Stand-ins for a server build that forgot `g3-kit/server`: the
     // function then runs uncached, with a warning that says how to fix it,
     // instead of failing on a path that doesn't exist.
 
     #[cfg(not(feature = "server"))]
     #[deprecated(
-        note = "`#[cache_shared(cdn = ..)]` is not caching: add `g3-core/server` to your app's `server` feature"
+        note = "`#[cache_shared(cdn = ..)]` is not caching: add `g3-kit/server` to your app's `server` feature"
     )]
     pub fn cdn_cache_for(_cdn_secs: u32) -> tower_layer::Identity {
         tower_layer::Identity::new()
@@ -231,7 +231,7 @@ pub mod __private {
     #[cfg(not(feature = "server"))]
     impl<T> SharedCache<T> {
         #[deprecated(
-            note = "`#[cache_shared(server = ..)]` is not caching: add `g3-core/server` to your app's `server` feature"
+            note = "`#[cache_shared(server = ..)]` is not caching: add `g3-kit/server` to your app's `server` feature"
         )]
         pub const fn new(_ttl: std::time::Duration, _capacity: u64) -> Self {
             Self(std::marker::PhantomData)

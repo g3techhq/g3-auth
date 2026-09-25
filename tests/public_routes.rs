@@ -8,9 +8,9 @@
 use dioxus::prelude::*;
 // Imported beside the derive's `#[public]` helper on purpose: the two must
 // not clash when a module uses both.
-use g3_core::auth::PublicRoutes;
+use g3_kit::auth::PublicRoutes;
 #[allow(unused_imports)]
-use g3_core::public;
+use g3_kit::public;
 
 #[derive(Clone, Debug, PartialEq, Routable, PublicRoutes)]
 #[rustfmt::skip]
@@ -180,7 +180,7 @@ fn share_links_match_in_either_encoding() {
 #[cfg(feature = "server")]
 mod guard {
     use super::Route;
-    use g3_core::auth::AuthGuard;
+    use g3_kit::auth::AuthGuard;
 
     #[test]
     fn the_guard_uses_the_marked_pages() {

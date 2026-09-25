@@ -4,7 +4,7 @@
 #![cfg(all(feature = "auth", feature = "server", feature = "cache"))]
 
 use dioxus::prelude::*;
-use g3_core::{auth, cache_shared, public};
+use g3_kit::{auth, cache_shared, public};
 
 #[public]
 #[get("/api/it/is_signed_in")]

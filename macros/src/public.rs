@@ -66,7 +66,7 @@ pub(crate) fn expand(attr: TokenStream2, item: TokenStream2) -> syn::Result<Toke
 
     Ok(quote! {
         #item
-        ::g3_core::__private::public_endpoint!(#path);
+        ::g3_kit::__private::public_endpoint!(#path);
     })
 }
 

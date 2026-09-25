@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to `g3-core` are documented here. The format follows
+All notable changes to `g3-kit` are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 

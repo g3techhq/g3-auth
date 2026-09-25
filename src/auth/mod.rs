@@ -12,7 +12,7 @@
 //!
 //! ```ignore
 //! /// The splash asks this before it knows whether anyone is signed in.
-//! #[g3_core::public]
+//! #[g3_kit::public]
 //! #[get("/api/v1/is_signed_in", ctx: SessionContext)]
 //! pub async fn is_signed_in() -> Result<bool> {
 //!     Ok(!ctx.session_user.anonymous)
@@ -46,10 +46,10 @@
 //!
 //! ```toml
 //! [dependencies]
-//! g3-core = { version = "0.1", features = ["auth"] }
+//! g3-kit = { version = "0.1", features = ["auth"] }
 //!
 //! [features]
-//! server = ["dioxus/server", "g3-core/server"]
+//! server = ["dioxus/server", "g3-kit/server"]
 //! ```
 //!
 //! Load [`SESSIONS_SCHEMA`] into the database (or copy it into the app's

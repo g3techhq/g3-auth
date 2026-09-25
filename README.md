@@ -1,9 +1,9 @@
-# g3-core
+# g3-kit
 
-[![CI](https://github.com/g3techhq/g3-core/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/g3techhq/g3-core/actions/workflows/ci.yml)
-[![Crates.io](https://img.shields.io/crates/v/g3-core.svg)](https://crates.io/crates/g3-core)
-[![docs.rs](https://docs.rs/g3-core/badge.svg)](https://docs.rs/g3-core)
-[![License](https://img.shields.io/crates/l/g3-core.svg)](#license)
+[![CI](https://github.com/g3techhq/g3-kit/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/g3techhq/g3-kit/actions/workflows/ci.yml)
+[![Crates.io](https://img.shields.io/crates/v/g3-kit.svg)](https://crates.io/crates/g3-kit)
+[![docs.rs](https://docs.rs/g3-kit/badge.svg)](https://docs.rs/g3-kit)
+[![License](https://img.shields.io/crates/l/g3-kit.svg)](#license)
 
 The shared core of g3 stack apps: the infrastructure every Dioxus fullstack
 app on the stack needs, written once and fixed once, behind feature flags.
@@ -20,18 +20,18 @@ feature in the app's feature of the same name:
 
 ```toml
 [dependencies]
-g3-core = { version = "0.1", features = ["cache", "auth"] }
+g3-kit = { version = "0.1", features = ["cache", "auth"] }
 
 [features]
-web = ["dioxus/web", "g3-core/web"]          # client cache persists to IndexedDB
-mobile = ["dioxus/mobile", "g3-core/mobile"] # client cache persists to a redb file
-server = ["dioxus/server", "g3-core/server"] # server halves of every area; client cache off
+web = ["dioxus/web", "g3-kit/web"]          # client cache persists to IndexedDB
+mobile = ["dioxus/mobile", "g3-kit/mobile"] # client cache persists to a redb file
+server = ["dioxus/server", "g3-kit/server"] # server halves of every area; client cache off
 ```
 
 ## Caching
 
 ```rust
-use g3_core::{cache_shared, invalidate_cached, use_cached};
+use g3_kit::{cache_shared, invalidate_cached, use_cached};
 
 // A screen: show the last known answer at once, refetch in the background.
 let media = use_cached(get_media, (id.clone(),));
@@ -73,7 +73,7 @@ DESCRIPTIONS.get_or_fetch(media_id, google_description(&media)).await
 In the app:
 
 ```rust
-use g3_core::{CacheConfig, set_cache_owner, use_client_cache};
+use g3_kit::{CacheConfig, set_cache_owner, use_client_cache};
 
 fn App() -> Element {
     // Once, first thing in the root component.
@@ -87,7 +87,7 @@ fn App() -> Element {
 ```rust
 // Server router: once, outside the session layer.
 .layer(session_layer)
-.layer(g3_core::cdn_cache_guard("/api"))
+.layer(g3_kit::cdn_cache_guard("/api"))
 ```
 
 Only standard `Cache-Control` headers are sent (`public`, `s-maxage`,
@@ -112,7 +112,7 @@ page or server function marked `#[public]`:
 
 ```rust
 /// The splash asks this before it knows whether anyone is signed in.
-#[g3_core::public]
+#[g3_kit::public]
 #[get("/api/v1/is_signed_in", ctx: SessionContext)]
 pub async fn is_signed_in() -> Result<bool> {
     Ok(!ctx.session_user.anonymous)
@@ -148,12 +148,12 @@ pinning in a test.
 Setup, innermost layer first:
 
 ```rust
-use g3_core::auth::{AuthGuard, AuthSessionLayer, AuthUser, PublicRoutes, require_session};
+use g3_kit::auth::{AuthGuard, AuthSessionLayer, AuthUser, PublicRoutes, require_session};
 
 pub enum AppUser {}
 impl AuthUser for AppUser {} // table `user`, name field `display_name`
 
-pub type SessionContext = g3_core::auth::SessionContext<AppUser, Client>;
+pub type SessionContext = g3_kit::auth::SessionContext<AppUser, Client>;
 
 // Panics at startup if the splash isn't `#[public]`: the redirect would loop.
 let guard = AuthGuard::for_routes(Route::Splash {});

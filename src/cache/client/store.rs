@@ -58,7 +58,7 @@ mod backend {
     /// Desktop runs of a mobile build (the simulator host, `dx serve`).
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     fn cache_dir() -> Option<PathBuf> {
-        Some(std::env::temp_dir().join("g3-core"))
+        Some(std::env::temp_dir().join("g3-kit"))
     }
 
     pub(crate) async fn load(key: &str) -> Option<String> {

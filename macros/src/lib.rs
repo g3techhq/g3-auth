@@ -1,5 +1,5 @@
-//! Proc macros for [g3-core](https://docs.rs/g3-core). Use them through
-//! `g3_core::cache_shared` and `g3_core::public`.
+//! Proc macros for [g3-kit](https://docs.rs/g3-kit). Use them through
+//! `g3_kit::cache_shared` and `g3_kit::public`.
 
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
@@ -14,7 +14,7 @@ mod routes;
 /// Place it **above** the route attribute:
 ///
 /// ```ignore
-/// #[g3_core::cache_shared(cdn = 300, server = "5m")]
+/// #[g3_kit::cache_shared(cdn = 300, server = "5m")]
 /// #[get("/api/trending?media_type", db: Db)]
 /// pub async fn get_trending(media_type: Option<MediaType>) -> Result<Vec<Media>> { .. }
 /// ```
@@ -22,7 +22,7 @@ mod routes;
 /// # Arguments
 ///
 /// - `cdn = <seconds>`: CDN caching. Successful responses are marked
-///   `public, max-age=60, s-maxage=<seconds>` (see `g3_core::cache::cdn`).
+///   `public, max-age=60, s-maxage=<seconds>` (see `g3_kit::cache::cdn`).
 /// - `server = "<duration>"`: server caching, e.g. `"30s"`, `"5m"`, `"1h"`,
 ///   `"1d"`. The whole function's `Ok` answer is kept per set of arguments;
 ///   concurrent misses share one call and errors are not kept.
@@ -57,13 +57,13 @@ pub fn cache_shared(attr: TokenStream, item: TokenStream) -> TokenStream {
 
 /// Marks a server function as reachable without a session.
 ///
-/// g3-core's auth guard denies every request that has no signed-in user,
+/// g3-kit's auth guard denies every request that has no signed-in user,
 /// unless its path is a static asset, a public page the app names, or a
 /// server function marked with this attribute. Place it **above** the route
 /// attribute:
 ///
 /// ```ignore
-/// #[g3_core::public]
+/// #[g3_kit::public]
 /// #[get("/api/v1/is_signed_in", ctx: SessionContext)]
 /// pub async fn is_signed_in() -> Result<bool> { .. }
 /// ```
@@ -80,7 +80,7 @@ pub fn cache_shared(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// - The path starts with `/`. A `?query` suffix is ignored, and `{param}`
 ///   segments match any one segment.
 ///
-/// In a build without `g3-core/server` it registers nothing, so client
+/// In a build without `g3-kit/server` it registers nothing, so client
 /// builds compile the same code.
 #[proc_macro_attribute]
 pub fn public(attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -124,7 +124,7 @@ fn report(result: syn::Result<TokenStream2>, item: TokenStream) -> TokenStream {
 /// let guard = AuthGuard::for_routes(Route::Splash {});
 /// ```
 ///
-/// It implements `g3_core::auth::PublicRoutes` from the variants' own
+/// It implements `g3_kit::auth::PublicRoutes` from the variants' own
 /// `#[route]` and enclosing `#[nest]` paths, and matches a request path
 /// against those directly. It never parses the path into the enum: a
 /// catch-all `#[redirect]` would turn every unknown path, and every `/api/`

@@ -13,12 +13,12 @@
 //!
 //! ```toml
 //! [dependencies]
-//! g3-core = { version = "0.1", features = ["cache", "auth"] }
+//! g3-kit = { version = "0.1", features = ["cache", "auth"] }
 //!
 //! [features]
-//! web = ["dioxus/web", "g3-core/web"]
-//! mobile = ["dioxus/mobile", "g3-core/mobile"]
-//! server = ["dioxus/server", "g3-core/server"]
+//! web = ["dioxus/web", "g3-kit/web"]
+//! mobile = ["dioxus/mobile", "g3-kit/mobile"]
+//! server = ["dioxus/server", "g3-kit/server"]
 //! ```
 //!
 //! # Features
@@ -54,7 +54,7 @@ pub use cache::{
 pub use cache::{ServerCache, cdn_cache_guard};
 
 #[cfg(feature = "auth")]
-pub use g3_core_macros::public;
+pub use g3_kit_macros::public;
 
 /// Support for the code the macros generate. Not public API.
 #[doc(hidden)]
@@ -68,13 +68,13 @@ pub mod __private {
     /// Registers a [`public`](crate::public) path; nothing outside a server
     /// build, where there is no guard to consult.
     #[cfg(feature = "auth")]
-    pub use crate::__g3_core_public_endpoint as public_endpoint;
+    pub use crate::__g3_kit_public_endpoint as public_endpoint;
 }
 
 #[doc(hidden)]
 #[macro_export]
 #[cfg(all(feature = "auth", feature = "server"))]
-macro_rules! __g3_core_public_endpoint {
+macro_rules! __g3_kit_public_endpoint {
     ($path:literal) => {
         const _: () = {
             $crate::__private::inventory::submit! {
@@ -87,6 +87,6 @@ macro_rules! __g3_core_public_endpoint {
 #[doc(hidden)]
 #[macro_export]
 #[cfg(all(feature = "auth", not(feature = "server")))]
-macro_rules! __g3_core_public_endpoint {
+macro_rules! __g3_kit_public_endpoint {
     ($path:literal) => {};
 }

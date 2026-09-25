@@ -1,0 +1,20 @@
+[package]
+name = "g3-core-testbed"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+# Standalone rather than a member of the library's package, so `cargo test` and
+# `cargo package` at the repo root neither build nor ship the test bed.
+[workspace]
+
+[dependencies]
+dioxus = { version = "=0.7.9", features = ["fullstack"] }
+g3-core = { path = "..", features = ["cache"] }
+serde = { version = "1.0.217", features = ["derive"] }
+
+[features]
+default = ["web"]
+web = ["dioxus/web", "g3-core/web"]
+mobile = ["dioxus/mobile", "g3-core/mobile"]
+server = ["dioxus/server", "g3-core/server"]

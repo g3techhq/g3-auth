@@ -1,0 +1,22 @@
+min_version: 2.1.12
+
+pre-commit:
+  parallel: true
+  commands:
+    format:
+      run: just format-check
+    spelling:
+      glob: "*.{rs,toml,md,txt,js,cjs,mjs,ts,tsx,json,jsonc,yml,yaml,css,html,surql}"
+      run: typos --force-exclude {staged_files}
+    whitespace:
+      run: git diff --cached --check
+
+commit-msg:
+  commands:
+    conventional-commit:
+      run: cog verify --file {1}
+
+pre-push:
+  commands:
+    quality:
+      run: just pre-push

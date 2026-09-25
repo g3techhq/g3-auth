@@ -1,0 +1,22 @@
+[package]
+name = "g3-core-macros"
+version = "0.1.0"
+
+edition = "2024"
+description = "Proc macros for g3-core: `#[cache_shared]` and `#[public]`."
+repository = "https://github.com/g3techhq/g3-core"
+readme = "README.md"
+documentation = "https://docs.rs/g3-core-macros"
+license = "MIT OR Apache-2.0"
+keywords = ["dioxus", "cache", "auth", "macro"]
+categories = ["development-tools::procedural-macro-helpers", "caching"]
+include = ["Cargo.toml", "README.md", "CHANGELOG.md", "LICENSE-MIT", "LICENSE-APACHE", "src/**"]
+
+[lib]
+name = "g3_core_macros"
+proc-macro = true
+
+[dependencies]
+proc-macro2 = "1"
+quote = "1"
+syn = { version = "2", features = ["full", "visit"] }

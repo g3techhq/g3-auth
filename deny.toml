@@ -1,0 +1,63 @@
+[graph]
+all-features = false
+# Every area and the server build, so their dependencies are checked too.
+features = ["cache", "auth", "server"]
+
+[advisories]
+# Both arrive only through surrealdb-core (which the apps already depend on)
+# and neither is used by this crate. Revisit when SurrealDB updates them.
+ignore = [
+    { id = "RUSTSEC-2025-0141", reason = "bincode is unmaintained; via surrealdb-core -> surrealmx" },
+    { id = "RUSTSEC-2023-0071", reason = "rsa timing side channel, no fix upstream; via surrealdb-core -> jsonwebtoken, not used for decryption here" },
+]
+
+[licenses]
+allow = [
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "BSL-1.0",
+    "CC0-1.0",
+    "ISC",
+    "MIT",
+    "MPL-2.0",
+    "OpenSSL",
+    "Unicode-3.0",
+    "Zlib",
+]
+confidence-threshold = 0.8
+# Only for what the `auth` server build pulls in through SurrealDB, which the
+# apps already depend on. Nothing else may bring these licenses in.
+exceptions = [
+    { crate = "surrealdb", allow = ["BUSL-1.1"] },
+    { crate = "surrealdb-collections", allow = ["BUSL-1.1"] },
+    { crate = "surrealdb-core", allow = ["BUSL-1.1"] },
+    { crate = "surrealdb-protocol", allow = ["BUSL-1.1"] },
+    { crate = "surrealdb-strand", allow = ["BUSL-1.1"] },
+    { crate = "surrealdb-types", allow = ["BUSL-1.1"] },
+    { crate = "surrealdb-types-derive", allow = ["BUSL-1.1"] },
+    { crate = "ext-sort", allow = ["Unlicense"] },
+    # The Mozilla CA certificate dataset.
+    { crate = "webpki-roots", allow = ["CDLA-Permissive-2.0"] },
+]
+
+[licenses.private]
+ignore = true
+
+[bans]
+multiple-versions = "warn"
+wildcards = "warn"
+highlight = "simplest-path"
+workspace-default-features = "allow"
+external-default-features = "allow"
+allow = []
+deny = []
+skip = []
+skip-tree = []
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "warn"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []

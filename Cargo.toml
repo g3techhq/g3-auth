@@ -79,10 +79,19 @@ server = [
 
 [dev-dependencies]
 # `server` too: the integration tests expand real server functions.
-dioxus = { version = "0.7.9", features = ["fullstack", "server"] }
+dioxus = { version = "0.7.9", features = ["fullstack", "server", "router"] }
 tokio = { version = "1.42.0", features = ["macros", "rt-multi-thread"] }
 # An in-memory database for the session store and user loading tests.
 surrealdb = { version = "=3.2.4", default-features = false, features = ["kv-mem"] }
+
+# surrealdb-core is most of the database engine, and its debug info runs past
+# a gigabyte, relinked into every test binary. Only applies to building this
+# crate itself; apps set their own.
+[profile.dev.package.surrealdb-core]
+debug = false
+
+[profile.dev.package.surrealdb]
+debug = false
 
 [package.metadata.docs.rs]
 features = ["cache", "auth", "server"]

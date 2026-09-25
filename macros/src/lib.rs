@@ -6,6 +6,7 @@ use proc_macro2::TokenStream as TokenStream2;
 
 mod cache;
 mod public;
+mod routes;
 
 /// Caches a server function whose answer is the same for every visitor: at
 /// the CDN, on the server, or both.
@@ -96,5 +97,49 @@ fn report(result: syn::Result<TokenStream2>, item: TokenStream) -> TokenStream {
             item.extend(err.to_compile_error());
             item.into()
         }
+    }
+}
+
+/// Marks pages of a `Routable` enum as reachable without a session.
+///
+/// Derive it next to `Routable` and put `#[public]` on each page a signed-out
+/// visitor may load: the splash, sign-in, legal pages, share links.
+///
+/// ```ignore
+/// #[derive(Clone, Routable, PartialEq, PublicRoutes)]
+/// enum Route {
+///     #[redirect("/:..segments", |segments: Vec<String>| Route::Splash {})]
+///     #[public]
+///     #[route("/")]
+///     Splash {},
+///     #[nest("/games/:game_id")]
+///         #[public]
+///         #[route("/join")]
+///         JoinGame { game_id: String },
+///     #[end_nest]
+///     #[route("/home")]
+///     Home {},
+/// }
+///
+/// let guard = AuthGuard::for_routes(Route::Splash {});
+/// ```
+///
+/// It implements `g3_core::auth::PublicRoutes` from the variants' own
+/// `#[route]` and enclosing `#[nest]` paths, and matches a request path
+/// against those directly. It never parses the path into the enum: a
+/// catch-all `#[redirect]` would turn every unknown path, and every `/api/`
+/// path, into its target, and a check on the parsed value would open them
+/// all. Redirects are never public.
+///
+/// # Checked at compile time
+///
+/// - `#[public]` takes no arguments and sits on a variant with `#[route]`.
+/// - Not on a `#[child]` variant, whose paths live in another enum.
+/// - `#[nest]` and `#[end_nest]` pair up.
+#[proc_macro_derive(PublicRoutes, attributes(public))]
+pub fn derive_public_routes(item: TokenStream) -> TokenStream {
+    match routes::expand(item.into()) {
+        Ok(tokens) => tokens.into(),
+        Err(err) => err.to_compile_error().into(),
     }
 }

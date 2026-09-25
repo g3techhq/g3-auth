@@ -4,7 +4,7 @@
 //! | Area | Feature | What it gives you |
 //! |---|---|---|
 //! | [Caching](cache) | `cache` | [`use_cached`] on the device, [`cache_shared`] on the server and CDN, [`invalidate_cached`] |
-//! | [Auth](auth) | `auth` | Sessions in SurrealDB, the signed-in user on every request, a deny-by-default guard, and [`public`] for server functions a signed-out visitor may call |
+//! | [Auth](auth) | `auth` | Sessions in SurrealDB, the signed-in user on every request, a deny-by-default guard, and `#[public]` for the pages and server functions a signed-out visitor may use |
 //!
 //! # Setup
 //!

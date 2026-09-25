@@ -37,3 +37,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
     for server function calls and a redirect only for page loads.
   - `#[public]` to mark a server function reachable without a session, with
     `is_public_endpoint` and `public_endpoints`.
+  - `#[derive(PublicRoutes)]` with `#[public]` on a `Routable` enum's pages,
+    matched against the routes' own `#[route]`/`#[nest]` patterns rather than
+    by parsing the path, so a catch-all `#[redirect]` can't open anything.
+  - `AuthGuard::for_routes`, which refuses a splash that isn't public.

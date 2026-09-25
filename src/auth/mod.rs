@@ -7,7 +7,7 @@
 //! Every request needs a signed-in user unless it is for:
 //!
 //! - a static asset ([`is_static_asset`]),
-//! - a page the app names in [`AuthGuard::public_page`], or
+//! - a page marked `#[public]` in the app's [`PublicRoutes`] enum, or
 //! - a server function marked [`public`](crate::public):
 //!
 //! ```ignore
@@ -21,7 +21,26 @@
 //!
 //! Forgetting `#[public]` is the safe mistake: a signed-out caller gets a
 //! `401`, which the page can see and act on. A signed-out page load is
-//! redirected to [`AuthGuard::splash`] instead ([`is_document_navigation`]).
+//! redirected to the splash instead ([`is_document_navigation`]).
+//!
+//! Pages are marked the same way, on the route enum:
+//!
+//! ```ignore
+//! #[derive(Clone, Routable, PartialEq, PublicRoutes)]
+//! enum Route {
+//!     #[redirect("/:..segments", |segments: Vec<String>| Route::Splash {})]
+//!     #[public]
+//!     #[route("/")]
+//!     Splash {},
+//!     #[nest("/games/:game_id")]
+//!         #[public]
+//!         #[route("/join")]
+//!         JoinGame { game_id: String },
+//!     #[end_nest]
+//!     #[route("/home")]
+//!     Home {},
+//! }
+//! ```
 //!
 //! # Setup
 //!
@@ -41,10 +60,8 @@
 //! pub enum AppUser {}
 //! impl AuthUser for AppUser {}
 //!
-//! fn is_public_page(path: &str) -> bool {
-//!     matches!(path, "/" | "/signin" | "/privacy-policy")
-//! }
-//! const GUARD: AuthGuard = AuthGuard { splash: "/", public_page: is_public_page };
+//! // Panics at startup if the splash isn't `#[public]`: the redirect would loop.
+//! let guard = AuthGuard::for_routes(Route::Splash {});
 //!
 //! let session_store = SessionStore::new(
 //!     Some(SurrealSessionPool::new(Arc::clone(&db))),
@@ -54,7 +71,7 @@
 //!
 //! dioxus::server::router(App)
 //!     .layer(Extension(Arc::clone(&db)))
-//!     .layer(from_fn_with_state(GUARD, require_session::<AppUser, Client>))
+//!     .layer(from_fn_with_state(guard, require_session::<AppUser, Client>))
 //!     .layer(AuthSessionLayer::<AppUser, Client>::new(Some(Arc::clone(&db))))
 //!     .layer(SessionLayer::new(session_store))
 //! ```
@@ -71,6 +88,7 @@
 mod guard;
 #[cfg(feature = "server")]
 mod public;
+mod routes;
 #[cfg(feature = "server")]
 mod session_store;
 #[cfg(feature = "server")]
@@ -83,6 +101,7 @@ pub use guard::{
 };
 #[cfg(feature = "server")]
 pub use public::{PublicEndpoint, is_public_endpoint, public_endpoints};
+pub use routes::PublicRoutes;
 #[cfg(feature = "server")]
 pub use session_store::SurrealSessionPool;
 #[cfg(feature = "server")]

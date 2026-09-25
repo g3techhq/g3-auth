@@ -107,8 +107,8 @@ What you still have to handle:
 
 ## Auth
 
-Every request needs a signed-in user unless it is for a static asset, a
-page the app names, or a server function marked `#[public]`:
+Every request needs a signed-in user unless it is for a static asset, or a
+page or server function marked `#[public]`:
 
 ```rust
 /// The splash asks this before it knows whether anyone is signed in.
@@ -119,30 +119,48 @@ pub async fn is_signed_in() -> Result<bool> {
 }
 ```
 
+Pages are marked on the route enum, next to `#[route]`:
+
+```rust
+#[derive(Clone, Routable, PartialEq, PublicRoutes)]
+enum Route {
+    #[redirect("/:..segments", |segments: Vec<String>| Route::Splash {})]
+    #[public]
+    #[route("/")]
+    Splash {},
+    #[nest("/games/:game_id")]
+        #[public]
+        #[route("/join")]
+        JoinGame { game_id: String },
+    #[end_nest]
+    #[route("/home")]
+    Home {},
+}
+```
+
 Forgetting `#[public]` is the safe mistake: a signed-out caller gets a `401`
 JSON body the client can decode, and a signed-out page load is redirected
 to the splash. Opening an endpoint up is one reviewable line next to the
-function, not an edit to a list somewhere else. `auth::public_endpoints()`
-lists them all, for pinning in a test.
+function or page, not an edit to a list somewhere else.
+`auth::public_endpoints()` and `Route::PUBLIC_PATTERNS` list them all, for
+pinning in a test.
 
 Setup, innermost layer first:
 
 ```rust
-use g3_core::auth::{AuthGuard, AuthSessionLayer, AuthUser, SurrealSessionPool, require_session};
+use g3_core::auth::{AuthGuard, AuthSessionLayer, AuthUser, PublicRoutes, require_session};
 
 pub enum AppUser {}
 impl AuthUser for AppUser {} // table `user`, name field `display_name`
 
 pub type SessionContext = g3_core::auth::SessionContext<AppUser, Client>;
 
-fn is_public_page(path: &str) -> bool {
-    matches!(path, "/" | "/signin" | "/privacy-policy")
-}
-const GUARD: AuthGuard = AuthGuard { splash: "/", public_page: is_public_page };
+// Panics at startup if the splash isn't `#[public]`: the redirect would loop.
+let guard = AuthGuard::for_routes(Route::Splash {});
 
 dioxus::server::router(App)
     .layer(Extension(Arc::clone(&db)))
-    .layer(from_fn_with_state(GUARD, require_session::<AppUser, Client>))
+    .layer(from_fn_with_state(guard, require_session::<AppUser, Client>))
     .layer(AuthSessionLayer::<AppUser, Client>::new(Some(Arc::clone(&db))))
     .layer(SessionLayer::new(session_store))
 ```
@@ -151,9 +169,11 @@ Sessions live in SurrealDB through `SurrealSessionPool`; load
 `auth::SESSIONS_SCHEMA` for its table. Mark the session cookie `Secure` in
 production: `SessionConfig::default().with_secure(!cfg!(debug_assertions))`.
 
-Be careful naming public pages with `path.parse::<Route>()`: a catch-all
-`#[redirect("/:..segments", ..)]` parses *every* path, including every
-`/api/` one, as its target, so "parses as the splash" opens the whole app.
+The derive matches request paths against the marked routes' own patterns and
+never parses a path into the enum: a catch-all
+`#[redirect("/:..segments", ..)]` parses *every* path, including every `/api/`
+one, as its target, so "parses as the splash" would open the whole app. For
+the same reason it refuses `#[public]` on a top-level catch-all route.
 
 A server function called during server-side rendering runs without any
 middleware, so the guard covers HTTP requests only. Functions acting on

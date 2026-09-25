@@ -4,9 +4,11 @@ use axum::{
     middleware::Next,
     response::{IntoResponse, Redirect, Response},
 };
+use std::{fmt::Display, sync::Arc};
+
 use surrealdb::Connection;
 
-use super::{AuthSession, AuthUser, is_public_endpoint};
+use super::{AuthSession, AuthUser, PublicRoutes, is_public_endpoint};
 
 /// Shaped like dioxus-fullstack's own error payload, so the server function
 /// client decodes it into a `ServerFnError::ServerError` carrying
@@ -62,24 +64,66 @@ pub fn unauthenticated_response(request: &Request, splash: &str) -> Response {
         .into_response()
 }
 
-/// What the guard lets through without a session, beyond static assets and
-/// [`public`](crate::public) server functions.
-#[derive(Clone, Copy, Debug)]
+/// What the guard lets through without a session: static assets,
+/// [`public`](crate::public) server functions, and the app's public pages.
+#[derive(Clone, Debug)]
 pub struct AuthGuard {
-    /// Where a signed-out page load is sent. It must itself be a public
-    /// page, or the redirect loops.
-    pub splash: &'static str,
-    /// The pages that render without a session: the splash, sign-in, legal
-    /// pages an app store links to, share links.
-    ///
-    /// Match paths, and be careful with `path.parse::<Route>()`: a
-    /// catch-all `#[redirect("/:..segments", ..)]` parses **every** path,
-    /// including every `/api/` one, as its target. A check like "parses as
-    /// the splash route" then opens the whole app.
-    pub public_page: fn(&str) -> bool,
+    splash: Arc<str>,
+    public_page: fn(&str) -> bool,
 }
 
 impl AuthGuard {
+    /// A guard whose public pages are the `#[public]` variants of a
+    /// [`PublicRoutes`] enum, sending signed-out page loads to `splash`:
+    ///
+    /// ```ignore
+    /// let guard = AuthGuard::for_routes(Route::Splash {});
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// If `splash` is not marked `#[public]`: every signed-out page load
+    /// would redirect to a page that redirects again.
+    pub fn for_routes<R: PublicRoutes + Display>(splash: R) -> Self {
+        Self::new(splash.to_string(), R::is_public_path)
+    }
+
+    /// A guard with public pages decided by `public_page`, for an app
+    /// without a [`PublicRoutes`] enum. Prefer [`for_routes`](Self::for_routes).
+    ///
+    /// Match paths, and never with `path.parse::<Route>()`: a catch-all
+    /// `#[redirect("/:..segments", ..)]` parses **every** path, including
+    /// every `/api/` one, as its target, so a check on the parsed value
+    /// opens the whole app.
+    ///
+    /// # Panics
+    ///
+    /// If `public_page` doesn't allow `splash`, for the same reason as
+    /// [`for_routes`](Self::for_routes).
+    pub fn new(splash: impl Into<String>, public_page: fn(&str) -> bool) -> Self {
+        let splash: Arc<str> = splash.into().into();
+        let guard = Self {
+            splash,
+            public_page,
+        };
+        assert!(
+            guard.allows_signed_out(guard.splash_path()),
+            "the splash `{}` must be a public page: the guard sends every signed-out page load \
+             there, so guarding it makes that redirect loop forever. Mark it `#[public]`.",
+            guard.splash,
+        );
+        guard
+    }
+
+    /// Where a signed-out page load is sent.
+    pub fn splash(&self) -> &str {
+        &self.splash
+    }
+
+    fn splash_path(&self) -> &str {
+        self.splash.split(['?', '#']).next().unwrap_or_default()
+    }
+
     /// Whether a request for `path` may proceed without a session.
     pub fn allows_signed_out(&self, path: &str) -> bool {
         is_static_asset(path) || (self.public_page)(path) || is_public_endpoint(path)
@@ -93,10 +137,10 @@ impl AuthGuard {
 /// first:
 ///
 /// ```ignore
-/// const GUARD: AuthGuard = AuthGuard { splash: "/", public_page: is_public_page };
+/// let guard = AuthGuard::for_routes(Route::Splash {});
 ///
 /// router
-///     .layer(from_fn_with_state(GUARD, require_session::<AppUser, Client>))
+///     .layer(from_fn_with_state(guard, require_session::<AppUser, Client>))
 ///     .layer(AuthSessionLayer::<AppUser, Client>::new(Some(db)).with_config(auth_config))
 ///     .layer(SessionLayer::new(session_store))
 /// ```
@@ -122,7 +166,7 @@ pub async fn require_session<U: AuthUser, C: Connection>(
     if is_authenticated {
         next.run(request).await
     } else {
-        unauthenticated_response(&request, guard.splash)
+        unauthenticated_response(&request, guard.splash())
     }
 }
 
@@ -183,10 +227,7 @@ mod tests {
         fn is_public_page(path: &str) -> bool {
             matches!(path, "/" | "/signin")
         }
-        let guard = AuthGuard {
-            splash: "/",
-            public_page: is_public_page,
-        };
+        let guard = AuthGuard::new("/", is_public_page);
 
         assert!(guard.allows_signed_out("/"));
         assert!(guard.allows_signed_out("/signin"));
@@ -195,5 +236,14 @@ mod tests {
         assert!(guard.allows_signed_out("/favicon.ico"));
         assert!(!guard.allows_signed_out("/profile"));
         assert!(!guard.allows_signed_out("/api/v1/get_bookmarks"));
+    }
+
+    #[test]
+    #[should_panic(expected = "must be a public page")]
+    fn a_guarded_splash_is_refused() {
+        fn only_signin(path: &str) -> bool {
+            path == "/signin"
+        }
+        AuthGuard::new("/", only_signin);
     }
 }

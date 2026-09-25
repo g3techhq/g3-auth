@@ -11,4 +11,5 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 - `#[cache_shared]`, re-exported by `g3-core` under its `cache` feature.
-- `#[public]`, re-exported by `g3-core` under its `auth` feature.
+- `#[public]` and `#[derive(PublicRoutes)]`, re-exported by `g3-core` under
+  its `auth` feature.

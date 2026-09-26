@@ -117,7 +117,7 @@ pub(crate) fn expand(item: TokenStream2) -> syn::Result<TokenStream2> {
     };
 
     Ok(quote! {
-        impl #impl_generics ::g3_kit::auth::PublicRoutes for #name #ty_generics #where_clause {
+        impl #impl_generics ::g3_auth::PublicRoutes for #name #ty_generics #where_clause {
             const PUBLIC_PATTERNS: &'static [&'static str] = &[#(#patterns),*];
 
             fn is_public(&self) -> bool {

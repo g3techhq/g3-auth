@@ -2,7 +2,12 @@ use proc_macro2::{TokenStream as TokenStream2, TokenTree};
 use quote::quote;
 use syn::{Attribute, Error, ItemFn, Lit, LitStr, Meta, spanned::Spanned};
 
-use crate::cache::route_name;
+const ROUTE_ATTRS: &[&str] = &["get", "post", "put", "patch", "delete", "server"];
+
+fn route_name(attr: &Attribute) -> Option<String> {
+    let name = attr.path().segments.last()?.ident.to_string();
+    ROUTE_ATTRS.contains(&name.as_str()).then_some(name)
+}
 
 /// The route's path without its `?query` suffix: what a request's URI path
 /// is compared against.
@@ -66,7 +71,7 @@ pub(crate) fn expand(attr: TokenStream2, item: TokenStream2) -> syn::Result<Toke
 
     Ok(quote! {
         #item
-        ::g3_kit::__private::public_endpoint!(#path);
+        ::g3_auth::__private::public_endpoint!(#path);
     })
 }
 

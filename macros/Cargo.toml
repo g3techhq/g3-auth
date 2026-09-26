@@ -1,19 +1,19 @@
 [package]
-name = "g3-kit-macros"
+name = "g3-auth-macros"
 version = "0.1.0"
 
 edition = "2024"
-description = "Proc macros for g3-kit: `#[cache_shared]` and `#[public]`."
-repository = "https://github.com/g3techhq/g3-kit"
+description = "Proc macros for g3-auth: `#[public]` and `#[derive(PublicRoutes)]`."
+repository = "https://github.com/g3techhq/g3-auth"
 readme = "README.md"
-documentation = "https://docs.rs/g3-kit-macros"
+documentation = "https://docs.rs/g3-auth-macros"
 license = "MIT OR Apache-2.0"
-keywords = ["dioxus", "cache", "auth", "macro"]
-categories = ["development-tools::procedural-macro-helpers", "caching"]
+keywords = ["dioxus", "auth", "macro"]
+categories = ["development-tools::procedural-macro-helpers", "authentication"]
 include = ["Cargo.toml", "README.md", "CHANGELOG.md", "LICENSE-MIT", "LICENSE-APACHE", "src/**"]
 
 [lib]
-name = "g3_kit_macros"
+name = "g3_auth_macros"
 proc-macro = true
 
 [dependencies]

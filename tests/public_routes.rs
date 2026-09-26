@@ -2,15 +2,15 @@
 //! greenside's: a catch-all redirect, layouts, nested dynamic segments and
 //! query-only routes. The derive has to agree with the paths `Routable`
 //! renders, and must never let the redirect make a path public.
-#![cfg(feature = "auth")]
+
 #![allow(non_snake_case)]
 
 use dioxus::prelude::*;
 // Imported beside the derive's `#[public]` helper on purpose: the two must
 // not clash when a module uses both.
-use g3_kit::auth::PublicRoutes;
+use g3_auth::PublicRoutes;
 #[allow(unused_imports)]
-use g3_kit::public;
+use g3_auth::public;
 
 #[derive(Clone, Debug, PartialEq, Routable, PublicRoutes)]
 #[rustfmt::skip]
@@ -180,7 +180,7 @@ fn share_links_match_in_either_encoding() {
 #[cfg(feature = "server")]
 mod guard {
     use super::Route;
-    use g3_kit::auth::AuthGuard;
+    use g3_auth::AuthGuard;
 
     #[test]
     fn the_guard_uses_the_marked_pages() {

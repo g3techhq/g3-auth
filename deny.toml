@@ -1,7 +1,7 @@
 [graph]
 all-features = false
 # Every area and the server build, so their dependencies are checked too.
-features = ["cache", "auth", "server"]
+features = ["server"]
 
 [advisories]
 # Both arrive only through surrealdb-core (which the apps already depend on)

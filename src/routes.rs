@@ -26,7 +26,7 @@ pub trait PublicRoutes {
     }
 }
 
-pub use g3_kit_macros::PublicRoutes;
+pub use g3_auth_macros::PublicRoutes;
 
 /// Whether `path` matches a Dioxus route pattern. Empty segments are
 /// ignored on both sides, so `/games` and `/games/` are the same page.

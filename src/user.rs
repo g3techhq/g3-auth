@@ -174,7 +174,7 @@ pub type AuthSessionLayer<U, C> = axum_session_auth::AuthSessionLayer<
 /// Alias it once in the app:
 ///
 /// ```ignore
-/// pub type SessionContext = g3_kit::auth::SessionContext<AppUser, Client>;
+/// pub type SessionContext = g3_auth::SessionContext<AppUser, Client>;
 ///
 /// #[get("/api/v1/user", SessionContext { db, session_user, .. }: SessionContext)]
 /// ```

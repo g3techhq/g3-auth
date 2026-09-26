@@ -6,6 +6,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-09-26
+
+### Changed
+
+- The guard lets `/.well-known/` through without a session (via
+  `is_static_asset`): its files (Android asset links, Apple's app site
+  association, `security.txt`, ACME challenges) exist for clients that never
+  have one, and usually come from a library rather than a function an app
+  could mark `#[public]`.
+
 ## [0.1.0] - 2026-09-25
 
 ### Added

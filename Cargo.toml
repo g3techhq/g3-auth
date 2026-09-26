@@ -1,6 +1,6 @@
 [package]
 name = "g3-auth"
-version = "0.1.0"
+version = "0.1.1"
 
 edition = "2024"
 description = "Session auth for Dioxus fullstack apps on SurrealDB: a deny-by-default guard, #[public] server functions and routes."

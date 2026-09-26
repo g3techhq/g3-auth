@@ -46,8 +46,16 @@ pub fn is_document_navigation(request: &Request) -> bool {
 /// bundle, bundled assets, and the favicon a browser fetches on its own.
 /// Guarding the favicon would also write a session row per signed-out page
 /// load.
+///
+/// Also `/.well-known/`: its files (Android asset links, Apple's app site
+/// association, `security.txt`, ACME challenges) exist for clients that never
+/// have a session, and usually come from a library rather than a function
+/// the app could mark `#[public]`.
 pub fn is_static_asset(path: &str) -> bool {
-    path.starts_with("/wasm/") || path.starts_with("/assets/") || path == "/favicon.ico"
+    path.starts_with("/wasm/")
+        || path.starts_with("/assets/")
+        || path.starts_with("/.well-known/")
+        || path == "/favicon.ico"
 }
 
 /// What a signed-out request gets: a redirect to `splash` for a page load,
@@ -234,6 +242,9 @@ mod tests {
         assert!(guard.allows_signed_out("/wasm/app_bg.wasm"));
         assert!(guard.allows_signed_out("/assets/logo.svg"));
         assert!(guard.allows_signed_out("/favicon.ico"));
+        assert!(guard.allows_signed_out("/.well-known/assetlinks.json"));
+        assert!(guard.allows_signed_out("/.well-known/apple-app-site-association"));
+        assert!(!guard.allows_signed_out("/well-known/assetlinks.json"));
         assert!(!guard.allows_signed_out("/profile"));
         assert!(!guard.allows_signed_out("/api/v1/get_bookmarks"));
     }

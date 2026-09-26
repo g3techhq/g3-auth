@@ -8,7 +8,7 @@
 //!
 //! Every request needs a signed-in user unless it is for:
 //!
-//! - a static asset ([`is_static_asset`]),
+//! - a static asset or `/.well-known/` file ([`is_static_asset`]),
 //! - a page marked `#[public]` in the app's [`PublicRoutes`] enum, or
 //! - a server function marked [`public`]:
 //!

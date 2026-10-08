@@ -90,6 +90,8 @@
 //! signed-out visitor. Functions that act on "the current user" should still
 //! check `session_user.anonymous` rather than trust that they were guarded.
 
+#[cfg(feature = "google")]
+pub mod google;
 #[cfg(feature = "server")]
 mod guard;
 #[cfg(feature = "server")]
@@ -121,6 +123,27 @@ pub const SESSIONS_SCHEMA: &str = include_str!("sessions.surql");
 mod db_tests;
 
 pub use g3_auth_macros::public;
+
+/// Makes the session survive a relaunch on a phone or desktop app. Call it
+/// first in `main`, before launch and before anything can make a request;
+/// it does nothing on the web and the server, so no `cfg` is needed:
+///
+/// ```ignore
+/// fn main() {
+///     g3_auth::init();
+///     dioxus::launch(App);
+/// }
+/// ```
+///
+/// A native HTTP client has no browser cookie jar. Without a persistent one,
+/// sign-in succeeds, the app works, and the next launch finds nobody signed in
+/// (a guest, who cannot sign back in, loses the account). Needs the app's
+/// `mobile` or `desktop` feature to enable `g3-auth/mobile` or
+/// `g3-auth/desktop`.
+pub fn init() {
+    #[cfg(any(feature = "mobile", feature = "desktop"))]
+    dioxus_cookie::init();
+}
 
 /// Support for the code the macros generate. Not public API.
 #[doc(hidden)]

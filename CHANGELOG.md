@@ -6,6 +6,21 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-10-08
+
+### Added
+
+- `g3_auth::init()` and the `mobile` / `desktop` features: a phone or desktop
+  app's HTTP client keeps cookies in memory, so the session was lost on every
+  relaunch. `init()` (first thing in `main`, a no-op on web and server)
+  persists it in the Keychain, the Keystore or the OS keyring through
+  `dioxus-cookie`.
+- The `google` feature: `google::GoogleSignIn`, a "Sign in with Google" button
+  for web (Google's own) and Android (the system Credential Manager), and with
+  `server` the `google::google_router` callback that verifies the ID token and
+  starts the session. The app supplies only `GoogleAccounts`, which maps a
+  Google identity to its own account row.
+
 ## [0.1.1] - 2026-09-26
 
 ### Changed

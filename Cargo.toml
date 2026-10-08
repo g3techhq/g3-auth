@@ -1,6 +1,6 @@
 [package]
 name = "g3-auth"
-version = "0.1.1"
+version = "0.1.2"
 
 edition = "2024"
 description = "Session auth for Dioxus fullstack apps on SurrealDB: a deny-by-default guard, #[public] server functions and routes."
@@ -20,7 +20,7 @@ path = "src/lib.rs"
 g3-auth-macros = { version = "0.1.0", path = "macros" }
 
 # server: sessions, the signed-in user and the guard.
-axum = { version = "0.8.9", default-features = false, optional = true }
+axum = { version = "0.8.9", default-features = false, features = ["form", "json"], optional = true }
 axum_session = { version = "0.20.1", optional = true }
 axum_session_auth = { version = "0.20.0", optional = true }
 async-trait = { version = "0.1.88", optional = true }
@@ -31,8 +31,37 @@ inventory = { version = "0.3.20", optional = true }
 surrealdb = { version = "=3.2.4", default-features = false, optional = true }
 surrealdb-types = { version = "=3.2.4", optional = true }
 
+# native: the session cookie on a phone or desktop app. Their HTTP client
+# keeps cookies in memory, so without this a relaunch signs everyone out.
+dioxus-cookie = { version = "0.2", default-features = false, optional = true }
+
+# google: the "Sign in with Google" button and the callback behind it.
+dioxus = { version = "0.7.9", default-features = false, features = ["fullstack", "router"], optional = true }
+g3-ui = { version = "0.5.0", default-features = false, optional = true }
+serde = { version = "1", features = ["derive"], optional = true }
+serde_json = { version = "1", optional = true }
+
+# Checks the ID token on the server. Not for the clients: the wasm and native
+# builds only ever hold a token, never verify one.
+[target.'cfg(not(any(target_arch = "wasm32", target_os = "android", target_os = "ios")))'.dependencies]
+google-oauth = { version = "1.11.3", optional = true }
+
+# Android signs in through the system's Credential Manager.
+[target.'cfg(target_os = "android")'.dependencies]
+g3-native-plugins = { version = "0.4.2", default-features = false, features = ["auth"], optional = true }
+tokio = { version = "1.42.0", default-features = false, features = ["time"], optional = true }
+
 [features]
 default = []
+# Enable in the app's `mobile` feature. Keychain on iOS and Keystore on
+# Android; `mobile-sim` adds an encrypted-file fallback for simulators and
+# emulators without one (compiled out of release builds).
+mobile = ["dep:dioxus-cookie", "dioxus-cookie/mobile-sim"]
+# Enable in the app's `desktop` feature: the OS keyring.
+desktop = ["dep:dioxus-cookie", "dioxus-cookie/desktop"]
+# The Google button (`google::GoogleSignIn`) on every platform, and with
+# `server` the callback router (`google::google_router`).
+google = ["dep:dioxus", "dep:g3-ui", "dep:serde", "dep:serde_json", "dep:google-oauth", "dep:g3-native-plugins", "dep:tokio"]
 # Enable in the app's `server` feature. Without it, `#[public]` and
 # `PublicRoutes` still compile, so the same code builds for web and mobile.
 server = [

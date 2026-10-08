@@ -33,6 +33,7 @@ src/public.rs           #[public] server-function registry
 src/routes.rs           PublicRoutes: matching a path against the app's route patterns
 src/session_store.rs    SurrealSessionPool: sessions in SurrealDB
 src/sessions.surql      The session table schema apps load (SESSIONS_SCHEMA)
+src/google/            Sign in with Google: the GoogleSignIn button (component.rs) and the callback router (server.rs)
 src/user.rs             AuthUser, SessionUser, the extractor
 src/db_tests.rs         Store and user-loading tests on in-memory SurrealDB
 macros/src/lib.rs       #[public] and #[derive(PublicRoutes)]

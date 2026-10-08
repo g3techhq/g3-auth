@@ -17,7 +17,10 @@ format-check:
 check:
     cargo check
     cargo check --features server
+    cargo check --features "server google"
+    cargo check --features "mobile desktop"
     cargo check --target wasm32-unknown-unknown
+    cargo check --target wasm32-unknown-unknown --features google
     cargo check --manifest-path macros/Cargo.toml
 
 lint:
@@ -25,14 +28,14 @@ lint:
     cargo clippy --manifest-path macros/Cargo.toml --all-targets --no-deps
 
 lint-strict:
-    cargo clippy --all-targets --no-deps --features server -- -D warnings
-    cargo clippy --no-deps --target wasm32-unknown-unknown -- -D warnings
+    cargo clippy --all-targets --no-deps --features "server google" -- -D warnings
+    cargo clippy --no-deps --target wasm32-unknown-unknown --features google -- -D warnings
     cargo clippy --manifest-path macros/Cargo.toml --all-targets --no-deps -- -D warnings
 
 test:
-    cargo nextest run --features server
+    cargo nextest run --features "server google"
     cargo nextest run --manifest-path macros/Cargo.toml --no-tests pass
-    cargo test --doc --features server
+    cargo test --doc --features "server google"
     cargo test --doc --manifest-path macros/Cargo.toml
 
 spell:

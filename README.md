@@ -25,6 +25,69 @@ builds for web and mobile.
 
 ## Usage
 
+### Stay signed in on a phone
+
+A native app's HTTP client forgets cookies when the process dies, so without
+this every relaunch signs everyone out. Enable the feature for the platform and
+call `init` first in `main` (it does nothing on the web and the server):
+
+```toml
+[features]
+mobile = ["dioxus/mobile", "g3-auth/mobile"]   # or "g3-auth/desktop"
+```
+
+```rust
+fn main() {
+    g3_auth::init();
+    dioxus::launch(App);
+}
+```
+
+### Sign in with Google
+
+```toml
+g3-auth = { version = "0.1", features = ["google"] }
+
+[features]
+server = ["dioxus/server", "g3-auth/server"]
+```
+
+Put the button where it goes; it is Google's own button on the web and a
+system account picker on Android:
+
+```rust
+GoogleSignIn { on_signed_in: move |signed_in: GoogleSignedIn| { /* native only */ } }
+```
+
+On the server, say how a Google identity becomes one of your accounts and
+merge the callback before the session layers:
+
+```rust
+struct Accounts;
+
+#[async_trait]
+impl GoogleAccounts<Client> for Accounts {
+    async fn find_or_create(&self, db: &Surreal<Client>, who: GoogleIdentity) -> anyhow::Result<GoogleAccount> {
+        // look up by who.subject; create the row if there is none
+        Ok(GoogleAccount { user_id, is_new })
+    }
+}
+
+dioxus::server::router(App)
+    .merge(google_router::<AppUser, Client, _>(
+        GoogleConfig::new("/home", "/welcome"),
+        Accounts,
+    ))
+    .layer(/* extension, guard, auth session, session store */)
+```
+
+The web client id is public and read from `GOOGLE_OAUTH_CLIENT_ID` at build
+time by the client and at run time by the server. Android also needs an
+Android OAuth client for the app's package and signing key in the same Google
+Cloud project, or the system flow returns no token.
+
+### The guard
+
 
 Every request needs a signed-in user unless it is for a static asset, or a
 page or server function marked `#[public]`:

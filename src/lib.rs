@@ -90,6 +90,10 @@
 //! signed-out visitor. Functions that act on "the current user" should still
 //! check `session_user.anonymous` rather than trust that they were guarded.
 
+#[cfg(feature = "apple")]
+pub mod apple;
+#[cfg(feature = "server")]
+pub mod csrf;
 #[cfg(feature = "google")]
 pub mod google;
 #[cfg(feature = "server")]

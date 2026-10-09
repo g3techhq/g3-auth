@@ -27,6 +27,7 @@ async-trait = { version = "0.1.88", optional = true }
 anyhow = { version = "1.0.98", optional = true }
 chrono = { version = "0.4.39", default-features = false, features = ["clock"], optional = true }
 inventory = { version = "0.3.20", optional = true }
+url = { version = "2.5", optional = true }
 # Pinned exactly, like the apps: one copy of SurrealDB in the graph.
 surrealdb = { version = "=3.2.4", default-features = false, optional = true }
 surrealdb-types = { version = "=3.2.4", optional = true }
@@ -85,6 +86,7 @@ tokio = { version = "1.42.0", features = ["macros", "rt-multi-thread"] }
 surrealdb = { version = "=3.2.4", default-features = false, features = ["kv-mem"] }
 
 # surrealdb-core is most of the database engine, and its debug info runs past
+    "dep:url",
 # a gigabyte, relinked into every test binary. Only applies to building this
 # crate itself; apps set their own.
 [profile.dev.package.surrealdb-core]
@@ -94,4 +96,5 @@ debug = false
 debug = false
 
 [package.metadata.docs.rs]
+tower = { version = "0.5", features = ["util"] }
 features = ["server"]

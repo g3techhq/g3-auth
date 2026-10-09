@@ -128,9 +128,15 @@ where
         config,
         accounts: Box::new(accounts),
     });
-    Router::new()
-        .route(GOOGLE_CALLBACK_PATH, post(callback::<U, C>))
-        .with_state(inner)
+    // Google posts `g_csrf_token` as a cookie and a form field, and the
+    // receiver has to compare them; without it a page could sign a visitor in
+    // as someone else with a token of its own.
+    crate::csrf::protect(
+        Router::new()
+            .route(GOOGLE_CALLBACK_PATH, post(callback::<U, C>))
+            .with_state(inner),
+        crate::csrf::DoubleSubmit::GOOGLE,
+    )
 }
 
 async fn callback<U, C>(

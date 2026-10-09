@@ -3,7 +3,7 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use axum::{
     Json, Router,
-    extract::{Form, State},
+    extract::{Form, Query, State},
     http::{HeaderMap, StatusCode, header},
     response::{IntoResponse, Redirect, Response},
     routing::post,
@@ -59,6 +59,23 @@ pub trait GoogleAccounts<C: Connection>: Send + Sync + 'static {
         db: &Surreal<C>,
         identity: GoogleIdentity,
     ) -> anyhow::Result<GoogleAccount>;
+
+    /// Where to send the visitor when the sign-in finishes, or `None` for
+    /// [`GoogleConfig`]'s signed-in or new-account path. `return_to` is what the
+    /// button was given, which the client controls: allow only paths of your
+    /// own app, or this is an open redirect.
+    fn destination(&self, _is_new: bool, _return_to: Option<&str>) -> Option<String> {
+        None
+    }
+}
+
+/// The longest `return_to` the server will read.
+const MAX_RETURN_TO: usize = 512;
+
+/// The callback's query string: where the visitor was headed.
+#[derive(serde::Deserialize)]
+struct ReturnTo {
+    return_to: Option<String>,
 }
 
 /// Where the callback sends the visitor, and which client it trusts.
@@ -143,13 +160,15 @@ async fn callback<U, C>(
     State(inner): State<Arc<Inner<C>>>,
     context: SessionContext<U, C>,
     headers: HeaderMap,
+    Query(query): Query<ReturnTo>,
     Form(params): Form<GoogleCallback>,
 ) -> Response
 where
     U: AuthUser,
     C: Connection,
 {
-    let signed_in = match sign_in(&inner, &context, params.credential).await {
+    let return_to = query.return_to.filter(|value| value.len() <= MAX_RETURN_TO);
+    let signed_in = match sign_in(&inner, &context, params.credential, return_to.as_deref()).await {
         Ok(signed_in) => signed_in,
         Err(message) => return (StatusCode::INTERNAL_SERVER_ERROR, message).into_response(),
     };
@@ -169,6 +188,7 @@ async fn sign_in<U, C>(
     inner: &Inner<C>,
     context: &SessionContext<U, C>,
     credential: String,
+    return_to: Option<&str>,
 ) -> Result<GoogleSignedIn, String>
 where
     U: AuthUser,
@@ -203,11 +223,16 @@ where
     context.auth_session.login_user(account.user_id);
     context.auth_session.remember_user(true);
 
-    let destination = if account.is_new {
-        inner.config.new_account_path.clone()
-    } else {
-        inner.config.signed_in_path.clone()
-    };
+    let destination = inner
+        .accounts
+        .destination(account.is_new, return_to)
+        .unwrap_or_else(|| {
+            if account.is_new {
+                inner.config.new_account_path.clone()
+            } else {
+                inner.config.signed_in_path.clone()
+            }
+        });
     Ok(GoogleSignedIn {
         destination,
         is_new: account.is_new,

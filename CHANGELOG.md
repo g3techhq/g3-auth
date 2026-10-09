@@ -21,6 +21,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `csrf`: `DoubleSubmit` and `protect`, a login-CSRF check for a callback that a
   provider posts from its own page.
 
+- `GoogleSignIn { return_to }` and `GoogleAccounts::destination`, the same as for
+  Apple: where the visitor was headed travels in the callback's query string and
+  the app validates it.
+
 ### Fixed
 
 - **Security:** the Google callback did not compare `g_csrf_token`, the cookie

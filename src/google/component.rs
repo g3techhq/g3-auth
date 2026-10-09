@@ -26,10 +26,14 @@ const RENDER_SCRIPT: &str = r#"
             console.error("[g3-auth] Google OAuth client ID is not configured");
             return;
         }
+        const loginUri = new URL("/api/v1/google_signin_callback", window.location.origin);
+        if (container.dataset.returnTo) {
+            loginUri.searchParams.set("return_to", container.dataset.returnTo);
+        }
         google.accounts.id.initialize({
             client_id: clientId,
             ux_mode: "redirect",
-            login_uri: new URL("/api/v1/google_signin_callback", window.location.origin).href,
+            login_uri: loginUri.href,
         });
         google.accounts.id.renderButton(container, {
             type: "standard",
@@ -122,7 +126,10 @@ async fn native_credential(
 /// starts the session. Asking for JSON gets the destination back instead of a
 /// redirect to a whole page.
 #[cfg(target_os = "android")]
-async fn post_credential(credential: String) -> Result<GoogleSignedIn, String> {
+async fn post_credential(
+    credential: String,
+    return_to: Option<String>,
+) -> Result<GoogleSignedIn, String> {
     let client = dioxus::fullstack::GLOBAL_REQUEST_CLIENT
         .get()
         .ok_or_else(|| "The Google sign-in client is unavailable.".to_string())?;
@@ -133,6 +140,7 @@ async fn post_credential(credential: String) -> Result<GoogleSignedIn, String> {
             super::GOOGLE_CALLBACK_PATH
         ))
         .header("accept", "application/json")
+        .query(&[("return_to", return_to)])
         .form(&super::GoogleCallback { credential })
         .send()
         .await
@@ -164,6 +172,10 @@ pub fn GoogleSignIn(
     /// navigating there. Never called on the web, where the browser follows
     /// the server's redirect instead.
     on_signed_in: Option<EventHandler<GoogleSignedIn>>,
+    /// Where the visitor was headed, passed to
+    /// [`GoogleAccounts::destination`](super::GoogleAccounts::destination) when
+    /// the sign-in finishes. It travels in the callback's query string.
+    return_to: Option<String>,
     /// Button text. Defaults to "Sign in with Google".
     label: Option<String>,
     /// Disable the button, for another sign-in in progress.
@@ -188,6 +200,7 @@ pub fn GoogleSignIn(
 
     let configured = client_id.is_some();
     let native_client_id = client_id.clone();
+    let web_return_to = return_to.clone();
     let on_click = move |_| {
         #[cfg(target_os = "android")]
         {
@@ -200,7 +213,7 @@ pub fn GoogleSignIn(
             spawn(async move {
                 let result = async {
                     let credential = native_credential(&mut plugins, &client_id).await?;
-                    post_credential(credential).await
+                    post_credential(credential, return_to.clone()).await
                 }
                 .await;
                 match result {
@@ -216,7 +229,13 @@ pub fn GoogleSignIn(
             });
         }
         #[cfg(not(target_os = "android"))]
-        let _ = (&native_client_id, &on_signed_in, &mut error, &mut pending);
+        let _ = (
+            &native_client_id,
+            &on_signed_in,
+            &mut error,
+            &mut pending,
+            &return_to,
+        );
     };
 
     rsx! {
@@ -226,6 +245,7 @@ pub fn GoogleSignIn(
                     id: CONTAINER_ID,
                     class: "w-full min-h-10",
                     "data-client-id": client_id,
+                    "data-return-to": web_return_to.clone().unwrap_or_default(),
                 }
             }
         } else {

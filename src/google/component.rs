@@ -249,7 +249,7 @@ pub fn GoogleSignIn(
 mod tests {
     #[test]
     fn google_sign_in_uses_the_supported_rendered_button_flow() {
-        let source = include_str!("component.rs");
+        let source = include_str!("component.rs").replace("\r\n", "\n");
         let implementation = source
             .split("#[cfg(test)]")
             .next()
@@ -265,7 +265,7 @@ mod tests {
 
     #[test]
     fn android_signs_in_with_google_through_the_native_plugin() {
-        let source = include_str!("component.rs");
+        let source = include_str!("component.rs").replace("\r\n", "\n");
         // The web button's origin on Android is `https://dioxus.index.html`,
         // which Google rejects; the system credential flow has no origin.
         assert!(source.contains("const NATIVE: bool = cfg!(target_os = \"android\")"));

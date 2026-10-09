@@ -131,8 +131,12 @@ checked.
 
 ### Rate limits
 
+Enable it in the app's `server` feature, not on the dependency, because it implies
+g3-auth's `server` and a client build with that on pulls SurrealDB in:
+
 ```toml
-g3-auth = { version = "0.1", features = ["rate-limit"] }
+[features]
+server = ["g3-auth/server", "g3-auth/rate-limit"]
 ```
 
 ```rust

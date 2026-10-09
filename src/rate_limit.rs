@@ -140,6 +140,11 @@ impl RateLimits {
         self
     }
 
+    /// These limits, shared, as the state [`enforce`] takes.
+    pub fn shared(self) -> Arc<RateLimits> {
+        Arc::new(self)
+    }
+
     /// Wraps `router` so these limits apply to its requests. Layers wrap only the
     /// routes registered before them, so call this where the session layer's
     /// `Cookie` is already visible and the routes it should cover exist.
@@ -206,7 +211,13 @@ fn session_key(headers: &HeaderMap) -> String {
         .unwrap_or_else(|| "no-session".to_string())
 }
 
-async fn enforce(State(limits): State<Arc<RateLimits>>, request: Request, next: Next) -> Response {
+/// The middleware behind [`RateLimits::apply`], for a router built as one
+/// expression: `.layer(from_fn_with_state(limits.shared(), rate_limit::enforce))`.
+pub async fn enforce(
+    State(limits): State<Arc<RateLimits>>,
+    request: Request,
+    next: Next,
+) -> Response {
     match limits.check(request.uri().path(), request.headers()) {
         None => next.run(request).await,
         Some(retry_after) => too_many_requests(retry_after),

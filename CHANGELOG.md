@@ -8,6 +8,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- `credentials`: the email and password rules and their messages
+  (`normalize_email`, `validate_email`, `validate_password`, `validate_signup`,
+  `existing_account_message`), with no feature and no I/O, so a form and a server
+  function check the same thing. Three apps each had a copy.
 - The `apple` feature: `apple::AppleSignIn`, a "Sign in with Apple" button for
   the web and iOS, and with `server` the `apple::apple_router` that issues each
   attempt a single-use `state` and `nonce`, verifies Apple's identity token

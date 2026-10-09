@@ -36,6 +36,7 @@ src/sessions.surql      The session table schema apps load (SESSIONS_SCHEMA)
 src/google/            Sign in with Google: the GoogleSignIn button (component.rs) and the callback router (server.rs)
 src/apple/             Sign in with Apple: the button (component.rs), the router (server.rs), Apple's tokens (tokens.rs)
 src/apple.surql        The apple_challenge table apps load (APPLE_SCHEMA)
+src/credentials.rs    Email and password rules and their messages (no feature, no I/O)
 src/csrf.rs            Double-submit check for callbacks a provider posts from its own page
 src/rate_limit.rs      RateLimits: per-session and per-address limits on named endpoints
 src/user.rs             AuthUser, SessionUser, the extractor

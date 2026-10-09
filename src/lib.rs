@@ -92,6 +92,7 @@
 
 #[cfg(feature = "apple")]
 pub mod apple;
+pub mod credentials;
 #[cfg(feature = "server")]
 pub mod csrf;
 #[cfg(feature = "google")]

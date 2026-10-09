@@ -10,7 +10,7 @@ documentation = "https://docs.rs/g3-auth"
 license = "MIT OR Apache-2.0"
 keywords = ["dioxus", "fullstack", "auth", "session", "surrealdb"]
 categories = ["authentication", "web-programming"]
-include = ["Cargo.toml", "README.md", "CHANGELOG.md", "LICENSE-MIT", "LICENSE-APACHE", "src/**"]
+include = ["Cargo.toml", "README.md", "CHANGELOG.md", "LICENSE-MIT", "LICENSE-APACHE", "src/**", "!src/apple/test_keys/**"]
 
 [lib]
 name = "g3_auth"
@@ -47,13 +47,26 @@ serde_json = { version = "1", optional = true }
 [target.'cfg(not(any(target_arch = "wasm32", target_os = "android", target_os = "ios")))'.dependencies]
 google-oauth = { version = "1.11.3", optional = true }
 
-# Android signs in through the system's Credential Manager.
-[target.'cfg(target_os = "android")'.dependencies]
+# Apple's identity token is checked, and its code exchanged, on the server only.
+# `aws_lc_rs` because SurrealDB already turns it on in the same graph, and
+# jsonwebtoken panics on first use when it and `rust_crypto` are both on with no
+# provider installed (see `tokens::ensure_provider`).
+jsonwebtoken = { version = "10", default-features = false, features = ["aws_lc_rs", "use_pem"], optional = true }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"], optional = true }
+sha2 = { version = "0.10", optional = true }
+hex = { version = "0.4", optional = true }
+
+# Android signs in through the system's Credential Manager, iOS through the
+# Sign in with Apple sheet.
+[target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
 g3-native-plugins = { version = "0.4.2", default-features = false, features = ["auth"], optional = true }
 tokio = { version = "1.42.0", default-features = false, features = ["time"], optional = true }
 
 [features]
 default = []
+# The Apple button (`apple::AppleSignIn`) on the web and iOS, and with
+# `server` the routes behind it (`apple::apple_router`).
+apple = ["dep:dioxus", "dep:g3-ui", "dep:serde", "dep:serde_json", "dep:jsonwebtoken", "dep:reqwest", "dep:sha2", "dep:hex", "dep:g3-native-plugins", "dep:tokio"]
 # Enable in the app's `mobile` feature. Keychain on iOS and Keystore on
 # Android; `mobile-sim` adds an encrypted-file fallback for simulators and
 # emulators without one (compiled out of release builds).
@@ -73,6 +86,7 @@ server = [
     "dep:anyhow",
     "dep:chrono",
     "dep:inventory",
+    "dep:url",
     "dep:surrealdb",
     "dep:surrealdb-types",
 ]
@@ -82,11 +96,11 @@ server = [
 # and a real `Routable` enum.
 dioxus = { version = "0.7.9", features = ["fullstack", "server", "router"] }
 tokio = { version = "1.42.0", features = ["macros", "rt-multi-thread"] }
+tower = { version = "0.5", features = ["util"] }
 # An in-memory database for the session store and user loading tests.
 surrealdb = { version = "=3.2.4", default-features = false, features = ["kv-mem"] }
 
 # surrealdb-core is most of the database engine, and its debug info runs past
-    "dep:url",
 # a gigabyte, relinked into every test binary. Only applies to building this
 # crate itself; apps set their own.
 [profile.dev.package.surrealdb-core]
@@ -96,5 +110,4 @@ debug = false
 debug = false
 
 [package.metadata.docs.rs]
-tower = { version = "0.5", features = ["util"] }
 features = ["server"]

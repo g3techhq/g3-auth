@@ -86,6 +86,49 @@ time by the client and at run time by the server. Android also needs an
 Android OAuth client for the app's package and signing key in the same Google
 Cloud project, or the system flow returns no token.
 
+The callback checks Google's `g_csrf_token` (cookie against form field) for you,
+so a page cannot sign a visitor in with a token of its own.
+
+### Sign in with Apple
+
+```toml
+g3-auth = { version = "0.1", features = ["google", "apple"] }
+```
+
+```rust
+AppleSignIn {}  // the button; Apple's redirect on the web, the system sheet on iOS
+```
+
+```rust
+struct Accounts;
+
+#[async_trait]
+impl AppleAccounts<Client> for Accounts {
+    async fn find_or_create(&self, db: &Surreal<Client>, who: AppleIdentity) -> anyhow::Result<AppleAccount> {
+        // look up by who.subject; create the row if there is none; keep
+        // who.refresh_token and who.client_id to revoke on deletion
+        Ok(AppleAccount { user_id, is_new })
+    }
+}
+
+dioxus::server::router(App)
+    .merge(apple_router::<AppUser, Client, _>(
+        AppleConfig::new("/home", "/welcome").native_client_id("com.example.app"),
+        Accounts,
+    ))
+    .layer(/* extension, guard, auth session, session store */)
+```
+
+Load `g3_auth::APPLE_SCHEMA` beside `SESSIONS_SCHEMA`. `APPLE_SERVICES_ID` is
+the web Services ID, read at build time by the client and at run time by the
+server; `APP_ORIGIN` is the public origin Apple returns to. Add a Sign in with
+Apple key (`APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` or
+`APPLE_PRIVATE_KEY_PATH`) and the server exchanges the authorization code with
+Apple, which also gives you a refresh token. Call `apple::revoke_token` with it
+when the account is deleted. Apple needs HTTPS and refuses `localhost`, so try
+the web flow through a tunnel. The `apple` module docs list how each sign-in is
+checked.
+
 ### The guard
 
 

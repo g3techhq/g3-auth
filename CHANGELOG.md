@@ -6,6 +6,30 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- The `apple` feature: `apple::AppleSignIn`, a "Sign in with Apple" button for
+  the web and iOS, and with `server` the `apple::apple_router` that issues each
+  attempt a single-use `state` and `nonce`, verifies Apple's identity token
+  (signature, issuer, audience, expiry, nonce), exchanges the authorization
+  code when a signing key is configured, and starts the session. The app
+  supplies only `AppleAccounts`. `apple::revoke_token` revokes the grant when an
+  account is deleted, which App Store review requires. Load `APPLE_SCHEMA` for
+  the `apple_challenge` table. `AppleSignIn { return_to }` and
+  `AppleAccounts::destination` carry "where the visitor was headed" through the
+  attempt; the app validates it.
+- `csrf`: `DoubleSubmit` and `protect`, a login-CSRF check for a callback that a
+  provider posts from its own page.
+
+### Fixed
+
+- **Security:** the Google callback did not compare `g_csrf_token`, the cookie
+  and form field Google sends so a receiver can tell its own post from a
+  forged one. A page could sign a visitor in as the attacker's Google account
+  by posting a token of its own. A browser post (one with an `Origin` header)
+  now needs the cookie and field to match; the Android flow, which has no
+  `Origin`, is unchanged.
+
 ## [0.1.2] - 2026-10-08
 
 ### Added

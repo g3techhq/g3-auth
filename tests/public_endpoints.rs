@@ -37,11 +37,11 @@ fn marked_functions_are_public_and_nothing_else_is() {
     assert!(!g3_auth::is_public_endpoint("/api/it/private"));
     assert!(!g3_auth::is_public_endpoint("/api/it/games/game:abc/leave"));
 
-    // `google` registers its callback, which opens a path for every build
-    // that links it; that is its own test.
+    // `google` and `apple` register their callbacks, which open paths for every
+    // build that links them; that is their own test.
     let endpoints: Vec<_> = g3_auth::public_endpoints()
         .into_iter()
-        .filter(|path| !path.starts_with("/api/v1/google_"))
+        .filter(|path| !path.starts_with("/api/v1/google_") && !path.starts_with("/api/v1/apple_"))
         .collect();
     assert_eq!(
         endpoints,

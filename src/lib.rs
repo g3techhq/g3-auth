@@ -119,6 +119,11 @@ pub use session_store::SurrealSessionPool;
 #[cfg(feature = "server")]
 pub use user::{AuthSession, AuthSessionLayer, AuthUser, SessionContext, SessionUser};
 
+/// The `apple_challenge` table [`apple::apple_router`] keeps each sign-in
+/// attempt in. Load it with [`SESSIONS_SCHEMA`].
+#[cfg(all(feature = "server", feature = "apple"))]
+pub const APPLE_SCHEMA: &str = include_str!("apple.surql");
+
 /// The `sessions` table [`SurrealSessionPool`] reads and writes.
 #[cfg(feature = "server")]
 pub const SESSIONS_SCHEMA: &str = include_str!("sessions.surql");

@@ -34,6 +34,9 @@ src/routes.rs           PublicRoutes: matching a path against the app's route pa
 src/session_store.rs    SurrealSessionPool: sessions in SurrealDB
 src/sessions.surql      The session table schema apps load (SESSIONS_SCHEMA)
 src/google/            Sign in with Google: the GoogleSignIn button (component.rs) and the callback router (server.rs)
+src/apple/             Sign in with Apple: the button (component.rs), the router (server.rs), Apple's tokens (tokens.rs)
+src/apple.surql        The apple_challenge table apps load (APPLE_SCHEMA)
+src/csrf.rs            Double-submit check for callbacks a provider posts from its own page
 src/user.rs             AuthUser, SessionUser, the extractor
 src/db_tests.rs         Store and user-loading tests on in-memory SurrealDB
 macros/src/lib.rs       #[public] and #[derive(PublicRoutes)]

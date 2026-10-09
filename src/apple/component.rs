@@ -136,6 +136,10 @@ async fn native_sign_in(
 /// The server half is [`apple_router`](super::apple_router).
 #[component]
 pub fn AppleSignIn(
+    /// The web Services ID. Defaults to `APPLE_SERVICES_ID` as it was when
+    /// g3-auth was built ([`services_id`](super::services_id)); pass the app's
+    /// own when a build script, not the environment, supplies it.
+    services_id: Option<String>,
     /// Called after a native sign-in with the path to show next. Defaults to
     /// navigating there. Never called on the web.
     on_signed_in: Option<EventHandler<AppleSignedIn>>,
@@ -156,7 +160,7 @@ pub fn AppleSignIn(
     #[cfg(target_os = "ios")]
     let plugins = use_context::<g3_native_plugins::NativePlugins>();
 
-    let configured = super::services_id().is_some();
+    let configured = services_id.is_some() || super::services_id().is_some();
     let on_click = move |_| {
         error.set(None);
         #[cfg(target_os = "ios")]

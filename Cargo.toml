@@ -28,6 +28,7 @@ anyhow = { version = "1.0.98", optional = true }
 chrono = { version = "0.4.39", default-features = false, features = ["clock"], optional = true }
 inventory = { version = "0.3.20", optional = true }
 url = { version = "2.5", optional = true }
+governor = { version = "0.10", optional = true }
 # Pinned exactly, like the apps: one copy of SurrealDB in the graph.
 surrealdb = { version = "=3.2.4", default-features = false, optional = true }
 surrealdb-types = { version = "=3.2.4", optional = true }
@@ -64,6 +65,8 @@ tokio = { version = "1.42.0", default-features = false, features = ["time"], opt
 
 [features]
 default = []
+# Rate limits for sign-in, sign-up and code endpoints (`rate_limit::RateLimits`).
+rate-limit = ["server", "dep:governor", "dep:serde_json"]
 # The Apple button (`apple::AppleSignIn`) on the web and iOS, and with
 # `server` the routes behind it (`apple::apple_router`).
 apple = ["dep:dioxus", "dep:g3-ui", "dep:serde", "dep:serde_json", "dep:jsonwebtoken", "dep:reqwest", "dep:sha2", "dep:hex", "dep:g3-native-plugins", "dep:tokio"]

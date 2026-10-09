@@ -100,6 +100,8 @@ pub mod google;
 mod guard;
 #[cfg(feature = "server")]
 mod public;
+#[cfg(feature = "rate-limit")]
+pub mod rate_limit;
 mod routes;
 #[cfg(feature = "server")]
 mod session_store;

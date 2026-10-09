@@ -17,7 +17,7 @@ format-check:
 check:
     cargo check
     cargo check --features server
-    cargo check --features "server google apple"
+    cargo check --features "server google apple rate-limit"
     cargo check --features "mobile desktop"
     cargo check --target wasm32-unknown-unknown
     cargo check --target wasm32-unknown-unknown --features "google apple"
@@ -28,14 +28,14 @@ lint:
     cargo clippy --manifest-path macros/Cargo.toml --all-targets --no-deps
 
 lint-strict:
-    cargo clippy --all-targets --no-deps --features "server google apple" -- -D warnings
+    cargo clippy --all-targets --no-deps --features "server google apple rate-limit" -- -D warnings
     cargo clippy --no-deps --target wasm32-unknown-unknown --features "google apple" -- -D warnings
     cargo clippy --manifest-path macros/Cargo.toml --all-targets --no-deps -- -D warnings
 
 test:
-    cargo nextest run --features "server google apple"
+    cargo nextest run --features "server google apple rate-limit"
     cargo nextest run --manifest-path macros/Cargo.toml --no-tests pass
-    cargo test --doc --features "server google apple"
+    cargo test --doc --features "server google apple rate-limit"
     cargo test --doc --manifest-path macros/Cargo.toml
 
 spell:

@@ -129,6 +129,23 @@ when the account is deleted. Apple needs HTTPS and refuses `localhost`, so try
 the web flow through a tunnel. The `apple` module docs list how each sign-in is
 checked.
 
+### Rate limits
+
+```toml
+g3-auth = { version = "0.1", features = ["rate-limit"] }
+```
+
+```rust
+let limits = RateLimits::new()
+    .client_ip_header("cf-connecting-ip") // only a header nobody but your proxy can set
+    .limit(Limit::per_hour(&["/api/v1/sign_up_email"], KeyBy::ClientIp, 10))
+    .limit(Limit::per_hour(&["/api/v1/sign_in_email"], KeyBy::ClientIp, 30));
+let router = limits.apply(router);
+```
+
+A session-keyed limit only slows a browser: an attacker drops the cookie for a
+fresh bucket. Key the sign-in and sign-up endpoints on the address.
+
 ### The guard
 
 

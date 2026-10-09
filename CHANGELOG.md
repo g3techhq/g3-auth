@@ -25,6 +25,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   Apple: where the visitor was headed travels in the callback's query string and
   the app validates it.
 
+- The `rate-limit` feature: `rate_limit::RateLimits`, limits on the endpoints
+  where volume is the abuse (sign-in, sign-up, codes), keyed on the session or on
+  an address header the app names, answered with a 429 the client reads as a
+  server function error.
+
 ### Fixed
 
 - **Security:** the Google callback did not compare `g_csrf_token`, the cookie

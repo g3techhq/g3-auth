@@ -37,6 +37,7 @@ src/google/            Sign in with Google: the GoogleSignIn button (component.r
 src/apple/             Sign in with Apple: the button (component.rs), the router (server.rs), Apple's tokens (tokens.rs)
 src/apple.surql        The apple_challenge table apps load (APPLE_SCHEMA)
 src/csrf.rs            Double-submit check for callbacks a provider posts from its own page
+src/rate_limit.rs      RateLimits: per-session and per-address limits on named endpoints
 src/user.rs             AuthUser, SessionUser, the extractor
 src/db_tests.rs         Store and user-loading tests on in-memory SurrealDB
 macros/src/lib.rs       #[public] and #[derive(PublicRoutes)]

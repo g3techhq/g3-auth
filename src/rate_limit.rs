@@ -3,8 +3,8 @@
 //!
 //! ```ignore
 //! let limits = RateLimits::new()
-//!     // Behind Cloudflare only (see below); omit it and limits key on the session.
-//!     .client_ip_header("cf-connecting-ip")
+//!     // Names the address header per deployment (see below); unset, limits key on the session.
+//!     .client_ip_header_from_env("CLIENT_IP_HEADER")
 //!     .limit(Limit::per_hour(&["/api/v1/sign_up_email", "/api/v1/sign_in_guest"], KeyBy::ClientIp, 10))
 //!     .limit(Limit::per_hour(&["/api/v1/sign_in_email"], KeyBy::ClientIp, 30));
 //!
@@ -101,7 +101,7 @@ fn non_zero(count: u32) -> NonZeroU32 {
 #[derive(Default)]
 pub struct RateLimits {
     limits: Vec<Limit>,
-    client_ip_header: Option<&'static str>,
+    client_ip_header: Option<String>,
 }
 
 impl RateLimits {
@@ -113,9 +113,24 @@ impl RateLimits {
     /// The request header that carries the visitor's address, such as
     /// `cf-connecting-ip`. Only name one that nobody but your proxy can set.
     #[must_use]
-    pub fn client_ip_header(mut self, name: &'static str) -> Self {
-        self.client_ip_header = Some(name);
+    pub fn client_ip_header(mut self, name: impl Into<String>) -> Self {
+        self.client_ip_header = Some(name.into());
         self
+    }
+
+    /// The same, read from the environment variable `var` (empty or unset means
+    /// none). Whether a header can be trusted is a fact about the deployment, not
+    /// the code, so a deployment names it: `CLIENT_IP_HEADER=cf-connecting-ip` when
+    /// only Cloudflare can reach the app.
+    #[must_use]
+    pub fn client_ip_header_from_env(self, var: &str) -> Self {
+        match std::env::var(var)
+            .ok()
+            .map(|value| value.trim().to_string())
+        {
+            Some(name) if !name.is_empty() => self.client_ip_header(name),
+            _ => self,
+        }
     }
 
     /// Adds a limit. A path in two limits is counted against both.
@@ -143,6 +158,7 @@ impl RateLimits {
             KeyBy::Session => format!("session:{}", session_key(headers)),
             KeyBy::ClientIp => self
                 .client_ip_header
+                .as_deref()
                 .and_then(|name| headers.get(name))
                 .and_then(|value| value.to_str().ok())
                 .map(|ip| format!("ip:{}", ip.trim()))

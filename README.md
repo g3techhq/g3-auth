@@ -137,7 +137,7 @@ g3-auth = { version = "0.1", features = ["rate-limit"] }
 
 ```rust
 let limits = RateLimits::new()
-    .client_ip_header("cf-connecting-ip") // only a header nobody but your proxy can set
+    .client_ip_header_from_env("CLIENT_IP_HEADER") // e.g. cf-connecting-ip, when only Cloudflare can reach the app
     .limit(Limit::per_hour(&["/api/v1/sign_up_email"], KeyBy::ClientIp, 10))
     .limit(Limit::per_hour(&["/api/v1/sign_in_email"], KeyBy::ClientIp, 30));
 let router = limits.apply(router);

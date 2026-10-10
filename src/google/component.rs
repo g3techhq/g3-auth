@@ -210,10 +210,11 @@ pub fn GoogleSignIn(
             pending.set(true);
             error.set(None);
             let mut plugins = plugins;
+            let return_to = return_to.clone();
             spawn(async move {
                 let result = async {
                     let credential = native_credential(&mut plugins, &client_id).await?;
-                    post_credential(credential, return_to.clone()).await
+                    post_credential(credential, return_to).await
                 }
                 .await;
                 match result {

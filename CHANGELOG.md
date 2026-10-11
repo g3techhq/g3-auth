@@ -6,6 +6,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- Reject staged local shared-library dependencies in the commit hook.
+
+- Add `KeyBy::Global` to bound expensive endpoint work when clients rotate cookies. Prepare version 0.1.3 for the unreleased authentication and security changes.
+
 ### Added
 
 - `credentials`: the email and password rules and their messages

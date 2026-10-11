@@ -13,6 +13,8 @@
 //!
 //! # What a limit keys on
 //!
+//! - [`KeyBy::Global`] is one shared bucket, so rotating cookies or addresses
+//!   cannot reset it. Pair it with client limits to bound total expensive work.
 //! - [`KeyBy::Session`] is the `session` cookie `axum_session` sets on every
 //!   visitor. A new session is a fresh bucket, so this limits a browser, not an
 //!   attacker, who just drops the cookie.
@@ -51,6 +53,9 @@ const MAX_TRACKED_KEYS: usize = 50_000;
 /// What a [`Limit`] counts requests by.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum KeyBy {
+    /// One shared bucket, including requests with forged or missing cookies.
+    /// Use alongside per-client limits to bound total expensive work.
+    Global,
     /// The visitor's session cookie.
     Session,
     /// The visitor's address, from [`RateLimits::client_ip_header`].
@@ -160,6 +165,7 @@ impl RateLimits {
 
     fn key(&self, by: KeyBy, headers: &HeaderMap) -> String {
         match by {
+            KeyBy::Global => "global".to_string(),
             KeyBy::Session => format!("session:{}", session_key(headers)),
             KeyBy::ClientIp => self
                 .client_ip_header
@@ -256,6 +262,27 @@ mod tests {
     }
 
     const SIGN_IN: &[&str] = &["/sign_in"];
+
+    #[test]
+    fn forged_cookies_cannot_reset_a_global_limit() {
+        let limits = RateLimits::new().limit(Limit::per_hour(SIGN_IN, KeyBy::Global, 2));
+        assert!(
+            limits
+                .check("/sign_in", &headers(&[("cookie", "session=one")]))
+                .is_none()
+        );
+        assert!(
+            limits
+                .check("/sign_in", &headers(&[("cookie", "session=two")]))
+                .is_none()
+        );
+        assert!(
+            limits
+                .check("/sign_in", &headers(&[("cookie", "session=three")]))
+                .is_some()
+        );
+        assert!(limits.check("/other", &HeaderMap::new()).is_none());
+    }
 
     #[test]
     fn a_session_is_keyed_by_its_cookie_and_a_missing_one_shares_a_bucket() {

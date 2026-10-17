@@ -38,6 +38,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   an address header the app names, answered with a 429 the client reads as a
   server function error.
 
+### Changed
+
+- The `apple` and `google` features depend on g3-ui 0.6 (was 0.5), so an app
+  on g3-ui 0.6 builds one copy of it. The buttons use only `Button` and
+  `Text`, which did not change.
+
 ### Fixed
 
 - **Security:** the Google callback did not compare `g_csrf_token`, the cookie

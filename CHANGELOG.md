@@ -46,6 +46,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- The web "Sign in with Google" button suits a dark app. It no longer sits
+  on a white slab wider than the button, which a dark color-scheme gave
+  Google's iframe, and it uses Google's dark (`filled_black`) theme when the
+  page is dark.
 - **Security:** the Google callback did not compare `g_csrf_token`, the cookie
   and form field Google sends so a receiver can tell its own post from a
   forged one. A page could sign a visitor in as the attacker's Google account

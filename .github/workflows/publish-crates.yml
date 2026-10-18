@@ -57,9 +57,19 @@ jobs:
         run: |
           set -euo pipefail
 
+          MACROS_VERSION="$(cargo metadata --no-deps --manifest-path macros/Cargo.toml --format-version 1 | jq -r '.packages[0].version')"
+
+          # Whether this macros version is in the crates.io index. Ask the
+          # index itself: inside this workspace `cargo info` answers from the
+          # local macros package, so an unpublished version looked published,
+          # was skipped, and the main crate then failed to resolve it.
+          macros_published() {
+            curl -sf "https://index.crates.io/g3/-a/g3-auth-macros" \
+              | jq -e --arg version "${MACROS_VERSION}" 'select(.vers == $version)' >/dev/null
+          }
+
           if [[ "${DRY_RUN}" == "true" ]]; then
-            MACROS_VERSION="$(cargo metadata --no-deps --manifest-path macros/Cargo.toml --format-version 1 | jq -r '.packages[0].version')"
-            if ! cargo info "g3-auth-macros@${MACROS_VERSION}" >/dev/null 2>&1; then
+            if ! macros_published; then
               echo "Publish the new macros version before verifying the parent archive." >&2
               cargo publish --dry-run --manifest-path macros/Cargo.toml
               exit 1
@@ -68,19 +78,17 @@ jobs:
             exit 0
           fi
 
-          MACROS_VERSION="$(cargo metadata --no-deps --manifest-path macros/Cargo.toml --format-version 1 | jq -r '.packages[0].version')"
-
           # A patch release often touches only the main crate. Publishing an
           # unchanged macros version is a hard error ("already exists on the
           # crates.io index") that would strand the main crate unpublished, so
           # only publish macros when this version is genuinely new.
-          if cargo info "g3-auth-macros@${MACROS_VERSION}" >/dev/null 2>&1; then
+          if macros_published; then
             echo "g3-auth-macros ${MACROS_VERSION} is already on crates.io; skipping it."
           else
             cargo publish --manifest-path macros/Cargo.toml
 
             for attempt in {1..30}; do
-              if cargo info "g3-auth-macros@${MACROS_VERSION}" >/dev/null 2>&1; then
+              if macros_published; then
                 break
               fi
 

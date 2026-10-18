@@ -13,7 +13,7 @@ a guard that denies by default.
 
 ```toml
 [dependencies]
-g3-auth = "0.1"
+g3-auth = "0.2"
 
 [features]
 server = ["dioxus/server", "g3-auth/server"]
@@ -46,7 +46,7 @@ fn main() {
 ### Sign in with Google
 
 ```toml
-g3-auth = { version = "0.1", features = ["google"] }
+g3-auth = { version = "0.2", features = ["google"] }
 
 [features]
 server = ["dioxus/server", "g3-auth/server"]
@@ -92,7 +92,7 @@ so a page cannot sign a visitor in with a token of its own.
 ### Sign in with Apple
 
 ```toml
-g3-auth = { version = "0.1", features = ["google", "apple"] }
+g3-auth = { version = "0.2", features = ["google", "apple"] }
 ```
 
 ```rust

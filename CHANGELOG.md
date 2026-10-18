@@ -6,6 +6,23 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-18
+
+### Changed
+
+- The `apple` and `google` features depend on g3-ui 0.6 (was 0.5), so an app
+  on g3-ui 0.6 builds one copy of it. The buttons use only `Button` and
+  `Text`, which did not change.
+
+### Fixed
+
+- The web "Sign in with Google" button suits a dark app. It no longer sits
+  on a white slab wider than the button, which a dark color-scheme gave
+  Google's iframe, and it uses Google's dark (`filled_black`) theme when the
+  page is dark.
+
+## [0.1.3] - 2026-10-11
+
 - Reject staged local shared-library dependencies in the commit hook.
 
 - Add `KeyBy::Global` to bound expensive endpoint work when clients rotate cookies. Prepare version 0.1.3 for the unreleased authentication and security changes.
@@ -38,18 +55,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   an address header the app names, answered with a 429 the client reads as a
   server function error.
 
-### Changed
-
-- The `apple` and `google` features depend on g3-ui 0.6 (was 0.5), so an app
-  on g3-ui 0.6 builds one copy of it. The buttons use only `Button` and
-  `Text`, which did not change.
-
 ### Fixed
 
-- The web "Sign in with Google" button suits a dark app. It no longer sits
-  on a white slab wider than the button, which a dark color-scheme gave
-  Google's iframe, and it uses Google's dark (`filled_black`) theme when the
-  page is dark.
 - **Security:** the Google callback did not compare `g_csrf_token`, the cookie
   and form field Google sends so a receiver can tell its own post from a
   forged one. A page could sign a visitor in as the attacker's Google account

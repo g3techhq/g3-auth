@@ -36,10 +36,10 @@ const RENDER_SCRIPT: &str = r#"
             login_uri: loginUri.href,
         });
         // The button matches the page: the app's color-scheme where it names
-        // one, otherwise the system's. The wrapper pins its own scheme to
-        // light (see below), so read the page's from outside it.
-        const page = container.parentElement?.parentElement ?? document.documentElement;
-        const scheme = getComputedStyle(page).colorScheme || "";
+        // one, otherwise the system's. g3-ui's AppWrapper sets the app's
+        // scheme on the root element; the wrappers around the button (ours,
+        // and any an app adds) pin theirs to light, so they cannot tell.
+        const scheme = getComputedStyle(document.documentElement).colorScheme || "";
         const dark = scheme.includes("dark")
             && (!scheme.includes("light") || matchMedia("(prefers-color-scheme: dark)").matches);
         google.accounts.id.renderButton(container, {

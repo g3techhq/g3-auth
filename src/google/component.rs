@@ -35,9 +35,16 @@ const RENDER_SCRIPT: &str = r#"
             ux_mode: "redirect",
             login_uri: loginUri.href,
         });
+        // The button matches the page: the app's color-scheme where it names
+        // one, otherwise the system's. The wrapper pins its own scheme to
+        // light (see below), so read the page's from outside it.
+        const page = container.parentElement?.parentElement ?? document.documentElement;
+        const scheme = getComputedStyle(page).colorScheme || "";
+        const dark = scheme.includes("dark")
+            && (!scheme.includes("light") || matchMedia("(prefers-color-scheme: dark)").matches);
         google.accounts.id.renderButton(container, {
             type: "standard",
-            theme: "outline",
+            theme: dark ? "filled_black" : "outline",
             size: "large",
             text: "signin_with",
             shape: "rectangular",
@@ -241,7 +248,12 @@ pub fn GoogleSignIn(
 
     rsx! {
         if !NATIVE && let Some(client_id) = client_id.as_deref() {
-            div { class: "w-full",
+            // Google draws its button in an iframe for a light page. Under a
+            // dark color-scheme the browser gives an iframe whose scheme
+            // differs from its parent's an opaque white canvas, which shows
+            // as a white slab wider than the button. Matching it keeps the
+            // canvas transparent.
+            div { class: "w-full", style: "color-scheme: light",
                 div {
                     id: CONTAINER_ID,
                     class: "w-full min-h-10",
@@ -282,6 +294,13 @@ mod tests {
         assert!(!implementation.contains("google.accounts.id.prompt()"));
         assert!(!implementation.contains("g_id_onload"));
         assert!(!implementation.contains("g_id_signin"));
+    }
+
+    #[test]
+    fn the_web_button_frame_stays_transparent_on_a_dark_page() {
+        let source = include_str!("component.rs").replace("\r\n", "\n");
+        assert!(source.contains("div { class: \"w-full\", style: \"color-scheme: light\","));
+        assert!(source.contains("theme: dark ? \"filled_black\" : \"outline\""));
     }
 
     #[test]

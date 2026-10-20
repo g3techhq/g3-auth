@@ -6,6 +6,19 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Opt-in account tracking, legacy session indexing and permanent account-session
+  retirement with a transactional fence against delayed session writes. Apply
+  the updated session schema before enabling tracking; encrypted/unknown legacy
+  formats fail rather than claiming complete cleanup.
+
+### Documentation
+
+- Require disabling the upstream user cache when deleted or filtered accounts
+  must lose authorization on other devices on their next request. Session-payload
+  erasure, provider cleanup and privacy recovery remain separate app operations.
+
 ## [0.2.0] - 2026-10-18
 
 ### Changed

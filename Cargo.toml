@@ -92,6 +92,7 @@ server = [
     "dep:url",
     "dep:surrealdb",
     "dep:surrealdb-types",
+    "dep:serde_json",
 ]
 
 [dev-dependencies]

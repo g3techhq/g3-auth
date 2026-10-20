@@ -25,6 +25,38 @@ builds for web and mobile.
 
 ## Usage
 
+### Revocation on other devices
+
+Configure `AuthSessionLayer` with
+`AuthConfig::<String>::default().set_cache(false)` when account deletion or an
+`AuthUser::FILTER` change must take effect on the next request. The upstream
+default is a sliding six-hour account cache; it can keep another device
+authenticated after its account row has been deleted. Rechecking the database
+revokes authorization; it does not by itself remove stored session payloads.
+
+Account tracking is an opt-in addition to `SurrealSessionPool`. Apply the current
+`SESSIONS_SCHEMA` before enabling it, retire all old untracked application writers,
+and use `SurrealSessionPool::new(db).track_accounts::<AppUser>()` when building the
+session store. It tracks String auth identifiers under the default
+`user_auth_session_id` key. Apps using `AuthConfig::with_session_id` must use the
+same key with `track_accounts_with_key::<AppUser>(key)` and account for any keys
+used by earlier releases. The adapter requires the plaintext axum_session JSON
+format; do not combine tracking with `SessionConfig::with_database_key`.
+
+`index_account_sessions("sessions")` backfills older records without changing
+their payloads or expiry. `retire_account_sessions("sessions", &account_id)`
+permanently retires that non-reused account identity and removes its indexed and
+legacy stored sessions. A transactional retirement fence prevents delayed tracked
+responses from saving that identity again. Unknown/encrypted legacy payloads or
+incompatible schema leave cleanup pending; do not report erasure as complete.
+
+Retirement is for account erasure, not ordinary sign-out or password changes.
+The app still owns account/content removal, provider revocation, private-data
+inventory, completion evidence and offsite recovery. Keep the private
+`auth_session_subject` retirement records in supported backups/replay, and review
+their retention against the longest supported request/session/restore lifetime.
+Never roll back to an untracked writer while relying on the retirement fence.
+
 ### Stay signed in on a phone
 
 A native app's HTTP client forgets cookies when the process dies, so without
